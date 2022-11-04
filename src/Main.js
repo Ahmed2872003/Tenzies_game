@@ -1,125 +1,93 @@
-import React from "react";
-import data from "./Data";
+import React, { useEffect, useState } from "react";
 import random from "./RandomNum";
+import { nanoid } from "nanoid";
+import Die from "./die.js";
+import Confetti from "react-confetti";
 export default function Main() {
-  /*Defenation for our boxes data state*/
-  const [boxesData, setData] = React.useState(() => data());
-  /*Defenation for our boxes data state*/
+  /*Use state to handle dice changes */
+  const [dice, setDice] = useState(() => makeDice());
+  /*Use state to handle dice changes */
+  /*game status */
+  const [gameEnded, setGame] = useState(false);
+  const [gameStatus, setGameStatus] = useState("in processing");
+  /*game status */
+  /* Create Dice info function*/
+  function makeDice() {
+    let dice = [];
+    for (let i = 0; i < 10; i++) {
+      dice.push({
+        id: nanoid(),
+        num: random(6),
+        selected: false,
+      });
+    }
+    return dice;
+  }
+  /* Create Dice info function*/
 
-  /*Defenation for our game state*/
-  const [gameState, setGameState] = React.useState(() => ["processing"]);
-  /*Defenation for our game state*/
+  /* Change each die to selected */
+  function makeSelect(id) {
+    setDice((prevDice) =>
+      prevDice.map((die) =>
+        die.id === id ? { ...die, selected: !die.selected } : die
+      )
+    );
+  }
+  /* Change each die to selected */
 
-  /*Build our numbers elements for our game*/
-  const boxes = boxesData.map((boxdata) => (
-    <p
-      style={{
-        backgroundColor: boxdata.selected
-          ? boxdata.wrong
-            ? "#ff0000"
-            : "#5ce18e"
-          : "white",
-      }}
-      key={boxdata.id}
-      onClick={(e) => makeSelect(e, boxdata.id)}
-    >
-      {boxdata.num}
-    </p>
+  /* get Random Values */
+  function changeValues() {
+    if (!gameEnded) {
+      setDice((prevDice) =>
+        prevDice.map((die) => ({
+          ...die,
+          num: die.selected ? die.num : random(6),
+        }))
+      );
+    } else {
+      setDice(makeDice());
+      setGame(false);
+      setGameStatus("in processing");
+    }
+  }
+  /* get Random Values */
+
+  /*determine if the game ended or not*/
+  useEffect(() => {
+    const allSelected = dice.every((die) => die.selected);
+    if (allSelected) {
+      setGame((prevData) => !prevData);
+      const firstDieVal = dice[0].num;
+      const allTheSameVal = dice.every((die) => die.num === firstDieVal);
+      if (allTheSameVal) setGameStatus("win");
+      else setGameStatus("lose");
+    }
+  }, [dice]);
+
+  /*determine if the game ended or not*/
+
+  /* build diceBoxes */
+  const diceBoxses = dice.map((die) => (
+    <Die
+      selected={die.selected}
+      value={die.num}
+      makeSelect={() => makeSelect(die.id)}
+    />
   ));
-  /*Build our numbers elements for our game*/
-
-  /*on click for numbers elements event*/
-  function makeSelect(event, boxId) {
-    let wrongNum = false;
-    if (!checkValues(extractNums(boxesData, +event.target.innerHTML)))
-      wrongNum = true;
-    if (!boxesData[boxId - 1].selected) {
-      setData((prevData) =>
-        prevData.map((prevBoxData) => {
-          if (prevBoxData.id === boxId) {
-            if (wrongNum) prevBoxData.wrong = true;
-            prevBoxData.selected = true;
-          }
-          return prevBoxData;
-        })
-      );
-    }
-  }
-  /*on click for numbers elements event*/
-
-  /*game results*/
-  React.useEffect(() => {
-    const c = boxesData.every((box) => box.selected);
-    const selectedNums = extractNums(boxesData);
-    const allTheSame = checkValues(selectedNums);
-    if (c && allTheSame) {
-      setGameState(["end", "win"]);
-      document.querySelector(".popUp").classList.add("show");
-    } else {
-      if (!allTheSame && selectedNums.length) {
-        setGameState(["end", "lose"]);
-        document.querySelector(".popUp").classList.add("show");
-      }
-    }
-  }, [boxesData]);
-  /*game results*/
-
-  /*extract numbers from our selected objects*/
-  function extractNums(BD, additionalNum = -1) {
-    let selectedNums = [];
-    let l = BD.length;
-    for (let i = 0; i < l; i++)
-      if (BD[i].selected) selectedNums.push(BD[i].num);
-    if (additionalNum !== -1) selectedNums.push(additionalNum);
-    return selectedNums;
-  }
-  /*extract numbers from our selected objects*/
-
-  /*Check if all numbers are the same*/
-  function checkValues(nums) {
-    return Math.max(...nums) === Math.min(...nums) ? true : false;
-  }
-  /*Check if all numbers are the same*/
-
-  /*determine what happen when we click the button in the game*/
-  function gameDirection() {
-    if (gameState.length === 1) {
-      setData((prevData) =>
-        prevData.map((prevBoxData) => {
-          if (!prevBoxData.selected) prevBoxData.num = random(10);
-          return prevBoxData;
-        })
-      );
-    } else {
-      document.querySelector(".popUp").classList.remove("show");
-      setData(data());
-      setTimeout(() => {
-        setGameState(["processing"]);
-      }, 300);
-    }
-  }
-  /*determine what happen when we click the button in the game*/
+  /* build diceBoxes */
   return (
     <main>
+      {gameStatus === "win" && (
+        <Confetti width={window.innerWidth} height={window.innerHeight} />
+      )}
       <h2>Tenzies</h2>
       <p>
         Roll until all dice are the same. Click each die to freeze it at its
         current value between rolls.
       </p>
-      <div className="numbers--con">{boxes}</div>
-      <button onClick={gameDirection}>
-        {gameState[0] === "processing" ? "Roll" : "Reset"}
-      </button>
-      <div
-        className="popUp"
-        style={{
-          backgroundColor: gameState[1] === "lose" ? "#ff0000" : "#5ce18e",
-        }}
-      >
-        {gameState[0] === "end" && gameState[1] === "lose"
-          ? "You Lose :("
-          : "You Won! :)"}
-      </div>
+      <div className="dice--con">{diceBoxses}</div>
+      <button onClick={changeValues}>{gameEnded ? "New game" : "Roll"}</button>
+      {gameStatus === "lose" && <p className="lose_message">You Lose :&lt;</p>}
     </main>
   );
 }

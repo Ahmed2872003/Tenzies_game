@@ -4,6 +4,7 @@
 body {
   margin: 0;
   font-family: "Cairo", sans-serif;
+  overflow: hidden;
 }
 #root {
   display: flex;
@@ -14,13 +15,13 @@ body {
   padding: 20px;
 }
 main {
-  position: relative;
   display: flex;
   flex-direction: column;
   text-align: center;
   background-image: linear-gradient(to bottom, #f3f3f3, #c0c0c0);
   border-radius: 5px;
   padding: 20px;
+  overflow: hidden;
 }
 main > * {
   margin: 0;
@@ -36,9 +37,9 @@ main p {
 }
 main button {
   border: none;
-  margin-top: 50px;
+  margin-top: 80px;
   align-self: center;
-  width: 100px;
+  width: 150px;
   height: 50px;
   border-radius: 5px;
   font-size: 20px;
@@ -46,12 +47,12 @@ main button {
   background-color: #3c28da;
   cursor: pointer;
 }
-.numbers--con {
+.dice--con {
   display: grid;
   gap: 15px;
   grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
 }
-.numbers--con p {
+.dice--con p {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -64,23 +65,9 @@ main button {
   cursor: pointer;
   box-shadow: 1px 1px 7px rgba(0 0 0 /0.2), -1px -1px 7px rgba(0 0 0 /0.2);
 }
-.popUp {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.lose_message {
+  color: #ff0000;
+  font-weight: 900;
   font-size: 40px;
-  font-weight: 700;
-  border-radius: 5px;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  color: white;
-  background-color: black;
-  width: 250px;
-  height: 200px;
-  transition: 0.3s;
-}
-.popUp.show {
-  transform: translate(-50%, -50%) scale(1.1);
+  margin-bottom: 0;
 }
